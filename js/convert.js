@@ -103,7 +103,7 @@ function getElementAttributes(element, elementName, inList) {
 	if (element.childElementCount === 0) {
 		let innerHtml = element.innerHTML.trim();
 		if (innerHtml.length > 0)
-			output += `${elementName}.inner${type} = "${(inList ? innerHtml.replace("{{", "{{INLIST") : innerHtml)}";\n`;
+			output += `${elementName}.inner${type} = "${(inList ? innerHtml.replaceAll("{{", "{{INLIST") : innerHtml)}";\n`;
 	}
 	return output;
 }
