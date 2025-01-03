@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="css/index.css">
+  <script src="js/index.js"></script>
+  <title>HTML to JavaScript Converter &bull; kuylar.dev</title>
+  <style>
+		textarea {
+			min-height: 16rem;
+			width: 100%;
+		}
+		</style>
+		<script src="js/convert.js"></script>
+</head>
+<body>
+	<h1>HTML to JavaScript Converter</h1>
+	<p>This is a quick tool to convert your HTML snippets to JavaScript functions, with a few extras.</p>
+	<h2>Try it live!</h2>
+	
+  <label>
+  	HTML goes here<br>
+  	<textarea id="html"></textarea>
+  </label>
+  <br>
+  
+  <label>
+  	JS comes out from here<br>
+  	<textarea id="js"></textarea>
+  </label>
+  <br>
+  
+  <button onclick="parse()">Parse</button>
+	<h2>Documentation</h2>
+	
+	<h3>Inserting text from model</h3>
+	<p>You can take values from the model and use them everywhere by using the <code>{{ modelName }}</code> syntax in the input</p>
+	<h4>Example</h4>
+
+	<fieldset>
+	  <legend>Input</legend>
+  	<pre>&lt;h5&gt;Hello &lcub;&lcub; name &rcub;&rcub;&lt;&sol;h5&gt;</pre>
+	</fieldset>
+	<fieldset>
+	  <legend>Build</legend>
+  	<pre>buildComponent({ name: "world" });</pre>
+	</fieldset>
+	<fieldset>
+	  <legend>Result</legend>
+  	<pre>&lt;h5&gt;Hello world&lt;&sol;h5&gt;</pre>
+	</fieldset>
+	
+	<h3>Lists/Arrays</h3></h3>
+	<p>I genuinely have no idea how to explain this, just look at the example and try to understand. thank you</p>
+	<h4>Example</h4>
+
+	<fieldset>
+	  <legend>Input</legend>
+  	<pre>&lt;h1&gt;&lcub;&lcub; title &rcub;&rcub;&lt;&sol;h1&gt;
+&lt;ul kjs-list=&quot;items&quot;&gt;
+  &lt;li&gt;&lcub;&lcub; item &rcub;&rcub;&lt;&sol;li&gt;
+&lt;&sol;ul&gt;</pre>
+	</fieldset>
+	<fieldset>
+	  <legend>Build</legend>
+  	<pre>buildComponent({
+  title: "Shopping List",
+  items: [
+  "Milk",
+  "Eggs"
+]});</pre>
+	</fieldset>
+	<fieldset>
+	  <legend>Result</legend>
+  	<pre>&lt;h1&gt;Shopping List&lt;&sol;h1&gt;
+&lt;ul&gt;
+  &lt;li&gt;Milk&lt;&sol;li&gt;
+  &lt;li&gt;Eggs&lt;&sol;li&gt;
+&lt;&sol;ul&gt;</pre>
+	</fieldset>
+	<p>Lists will also be returned in the returned object inside lists, so you can add items by using <code>result.lists["items" OR value of kjs-list].append({model})</code></p>
+	
+	<h3>Evaluating JavaScript</h3>
+	<p>You can use the <code>{! javascriptCode !}</code> syntax to evaluate a JavaScript snippet inside the model</p>
+	<h4>Example</h4>
+
+	<fieldset>
+	  <legend>Input</legend>
+  	<pre>&lt;p&gt;There are 
+  &lcub;! model.items.length !&rcub;
+  items in the list&lt;&sol;p&gt;</pre>
+	</fieldset>
+	<fieldset>
+	  <legend>Build</legend>
+  	<pre>buildComponent({ items: [
+  "Apple",
+  5,
+  {fruit: "Banana"}
+]});</pre>
+	</fieldset>
+	<fieldset>
+	  <legend>Result</legend>
+  	<pre>&lt;p&gt;There are 3 items in the list&lt;&sol;p&gt;</pre>
+	</fieldset>
+	
+	<p>Most features are enabled with HTML attributes.</p>
+	<ul>
+	  <li>
+	    <code>kjs-insertType="&lt;text|html&gt;"</code> Specifies to the method of inserting the text in the element. <code>text</code> uses <code>innerText</code> and <code>html</code> uses <code>innerHTML</code>
+	  </li>
+	  <li>
+	    <code>kjs-parserName="&lt;name&gt;"</code> Gives the element the name in the attribute, and returns it in the resulting object
+	  </li>
+	</ul>
+</body>
+</html>
