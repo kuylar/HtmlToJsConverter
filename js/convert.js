@@ -1,11 +1,11 @@
 const inputElement = document.getElementById("html")
 const outputElement = document.getElementById("js")
 const parser = new DOMParser()
-const outputTemplate = "(model) => {\n\t{{CODE}}\n};"
-const listModelRegex = /{{INLIST ?(.+?) ?}}/g
+const outputStart = "class NewComponent extends Component {\n\tconstructor(model) {\n\t\tsuper(model);";
+const outputPadding = "\n\t\t";
+const outputEnd = "\n\t}\n}";
 const modelRegex = /{{ ?(.+?) ?}}/g
-const jsRegex = /{! ?(.+?) ?!}/g
-const emptyStringRegex = /"" \+ (.+?) \+ ""/g
+const emptyStringRegex = /`\${(.+?)}`/g
 let elementIndex = 0;
 let specialElements = [];
 let listElements = [];
@@ -18,68 +18,76 @@ function parse() {
 	try {
 		specialElements = [];
 		listElements = [];
+		elementIndex = 0;
 		const inputHtml = inputElement.value
 		const doc = parser.parseFromString(inputHtml, "text/html")
 		const rootElement = doc.body.children[0];
-		outputElement.value = outputTemplate.replace("{{CODE}}",
+		outputElement.value = outputStart +
+			outputPadding +
+			outputPadding +
 			parseRootElement(rootElement)
 				.split("\n")
-				.join("\n\t")
-				.replace(listModelRegex, `" + $1 + "`)
-				.replace(modelRegex, `" + model.$1 + "`)
-				.replace(jsRegex, `" + ($1) + "`)
-				.replace(emptyStringRegex, "$1"));
+				.join(outputPadding) +
+			outputEnd;
 	} catch (e) {
 		outputElement.value = "Failed to parse HTML.\n" + e.toString()
 	}
 }
 
 function parseRootElement(element) {
-	let output = "";
-	const elementName = getElementName(element, "container")
-	elementIndex = 0;
-	output += `const ${elementName} = document.createElement("${element.tagName}");\n`;
+	const elementName = getElementName(element, "c")
+	let output = `const ${elementName} = document.createElement("${element.tagName}");\n`;
 	output += getElementAttributes(element, elementName);
 	for (const childElement of element.children) {
 		output += "\n" + parseElement(childElement, elementName) + "\n"
 	}
-	output += `\nreturn { ${elementName}, elements: { ${specialElements.join(", ")} }, lists: { ${listElements.map(e => e.listName + ": { append: " + e.funName)} } } };`;
-	return output;
+	output += "\n";
+	output += `this.root = ${elementName};\n`
+	specialElements.forEach((elem) => {
+		output += `this.elements["${elem}"] = ${elem};\n`
+	});
+	return output.trim();
 }
 
 
-function parseElement(element, parentElementName, padding, inList) {
-	padding = padding || "";
+function parseElement(element, parentElementName, inList) {
 	inList = inList || false;
 	let output = "";
 	let elementName = getElementName(element);
-	output += padding + `const ${elementName} = document.createElement("${element.tagName}");\n` + padding;
+	output += `const ${elementName} = document.createElement("${element.tagName}");\n`;
 	output += getElementAttributes(element, elementName, inList);
 	const listItem = element.getAttribute("kjs-list");
 	if (listItem) {
-		const listItemFunName = `${elementName}ListItem`;
-		output += `const ${listItemFunName} = (item) => {`;
-		for (const childElement of element.children) {
-			output += "\n" + parseElement(childElement, elementName, padding + "\t", true) + "\n" + padding
-		}
-		output += `${padding}};\n\n`;
-		output += `for (const item of model.${listItem}) {\n` + padding
-		output += `\t${listItemFunName}(item);`;
-		output += `\n${padding}}\n\n`;
-		listElements.push({
-			funName: listItemFunName,
-			listName: listItem
-		});
+		output += parseList(element, elementName, listItem);
 	} else {
 		for (const childElement of element.children) {
-			output += "\n" + padding + parseElement(childElement, elementName) + "\n"
+			output += "\n" + parseElement(childElement, elementName) + "\n"
 		}
 	}
-	output += padding + `${parentElementName}.appendChild(${elementName});`;
+	output += `${parentElementName}.appendChild(${elementName});`;
+
+	if (inList) {
+		output += `\nreturn ${elementName};`
+	}
 	return output;
 }
 
-function getElementAttributes(element, elementName, inList) {
+function parseList(element, elementName, listItem) {
+	let output = `this.lists["${elementName}"] = new List(\n`
+	output += `\t${elementName},\n`;
+	output += "\tmodel,\n"
+	output += `\tmodel.${listItem},\n`
+	output += `\tfunction (model, item) {`;
+	for (const childElement of element.children) {
+		output += "\n\t\t" + parseElement(childElement, "this.root", true).split("\n").join("\n\t\t") + "\n"
+	}
+	output += `\t}\n`;
+	output += ");\n";
+	output += `this.lists["${elementName}"].refresh();\n`;
+	return output;
+}
+
+function getElementAttributes(element, elementName) {
 	let output = "";
 	let type = "Text";
 	for (let i = 0; i < element.attributes.length; i++) {
@@ -102,8 +110,13 @@ function getElementAttributes(element, elementName, inList) {
 	}
 	if (element.childElementCount === 0) {
 		let innerHtml = element.innerHTML.trim();
-		if (innerHtml.length > 0)
-			output += `${elementName}.inner${type} = "${(inList ? innerHtml.replaceAll("{{", "{{INLIST") : innerHtml)}";\n`;
+		if (innerHtml.length > 0) {
+			const inner = innerHtml
+				.replaceAll("`", "\\`")
+				.replace(modelRegex, "${$1}")
+				.replace(emptyStringRegex, "$1");
+			output += `${elementName}.inner${type} = \`${inner}\`;\n`;
+		}
 	}
 	return output;
 }
@@ -117,6 +130,9 @@ function getElementName(element, defaultElementName) {
 		return defaultElementName;
 	} else {
 		elementIndex++;
-		return `element${elementIndex}`;
+		return `e${elementIndex.toString(16)}`;
 	}
 }
+
+document.getElementById("html").innerHTML = `<div>\n\t<h1 kjs-parsername="title">Hello {{ model.name }}</h1>\n\t<p kjs-inserttype="html">HTML inserted element</p>\n\t<p kjs-inserttype="html">5 < 10 > 9</p>\n\t<p kjs-inserttype="text">TEXT inserted element</p>\n\t<p kjs-inserttype="text">5 < 10 > 9</p>\n\t<p>There are \`{{ model.items.length }}\` items in the list</p>\n\t<ul kjs-list="items">\n\t\t<li>{{ item.thing }}</li>\n\t</ul>\n</div>`;
+parse();

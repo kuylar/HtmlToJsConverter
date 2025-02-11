@@ -1,16 +1,16 @@
 # HTML to JS converter
 
-Convert your components to JS methods without requiring any polyfills
+Convert your components to JS classes & reuse them wherever you need
 
 ## Example
 
 **Input:**
 ```html
 <div>
-    <h1 kjs-parsername="title">{{ title }}</h1>
-    <p>{{ body }}</p>
-    <p kjs-insertType=html>{{ body }}</p>
-    <code kjs-insertType=text>{! btoa("Top Secret Text") !}</code>
+    <h1 kjs-parsername="title">{{ model.title }}</h1>
+    <p>{{ model.body }}</p>
+    <p kjs-insertType=html>{{ model.body }}</p>
+    <code kjs-insertType=text>{{ btoa("Top Secret Text") }}</code>
     <ul kjs-list="items">
         <li>{{ item.amount }}x {{ item.name }}</li>
     </ul>
@@ -19,7 +19,7 @@ Convert your components to JS methods without requiring any polyfills
 
 **Calling the JS output:**
 ```js
-const instance = createComponent({
+const instance = new Component({
     title: "Shopping List",
     body: "Important shopping list. <b>Don't forget to buy these!!</b>",
     items: [
@@ -27,7 +27,7 @@ const instance = createComponent({
         {amount: 2, name: "Bags of milk"}
     ]
 });
-document.querySelector("body").append(instance.container);
+document.querySelector("body").append(instance.root);
 ```
 
 **Output:**
