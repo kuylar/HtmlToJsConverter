@@ -134,5 +134,5 @@ function getElementName(element, defaultElementName) {
 	}
 }
 
-document.getElementById("html").innerHTML = `<div>\n\t<h1 kjs-parsername="title">Hello {{ model.name }}</h1>\n\t<p kjs-inserttype="html">HTML inserted element</p>\n\t<p kjs-inserttype="html">5 < 10 > 9</p>\n\t<p kjs-inserttype="text">TEXT inserted element</p>\n\t<p kjs-inserttype="text">5 < 10 > 9</p>\n\t<p>There are \`{{ model.items.length }}\` items in the list</p>\n\t<ul kjs-list="items">\n\t\t<li>{{ item.thing }}</li>\n\t</ul>\n</div>`;
+document.getElementById("html").innerHTML = `<div>\n\t<h1 kjs-parsername="title">Hello {{ model.name }}</h1>\n\t<p kjs-inserttype="html">HTML inserted element</p>\n\t<p kjs-inserttype="html">5 < 10 > 9</p>\n\t<p kjs-inserttype="text">TEXT inserted element</p>\n\t<p kjs-inserttype="text">5 < 10 > 9</p>\n\t<p>There are \`{{ model.items.length }}\` items in the list</p>\n\t<ul kjs-list="items">\n\t\t<li>{{ item }}</li>\n\t</ul>\n</div>`;
 parse();

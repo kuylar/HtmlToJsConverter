@@ -59,18 +59,21 @@ class List {
 	 */
 	constructor(root, model, items, addItemFunction) {
 		this.root = root;
-		this.model = model;
+		this.parentModel = model;
 		this.items = items;
 		this._addItem = addItemFunction.bind(this);
 	}
 
 	/**
 	 * Adds a new item using the given item
-	 * @type item Object
+	 * @param item Object
+	 * @param [appendToInnerList=true] Boolean
 	 * @returns HTMLElement
 	 */
-	addItem(item) {
-		this.items.push(item);
+	addItem(item, appendToInnerList) {
+		appendToInnerList = appendToInnerList !== undefined ? appendToInnerList : true;
+		if (appendToInnerList)
+			this.items.push(item);
 		const el = this._addItem(this.parentModel, item);
 		this.root.appendChild(el);
 		return el;
@@ -88,7 +91,7 @@ class List {
 	refresh() {
 		this.clearItems();
 		for (const item of this.items) {
-			this.addItem(item);
+			this.addItem(item, false);
 		}
 	}
 }
