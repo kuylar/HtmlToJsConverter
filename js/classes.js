@@ -1,15 +1,18 @@
 class Component {
 	/**
+	 * Root element of the component
 	 * @type {HTMLElement}
 	 */
 	root;
 
 	/**
+	 * All elements that had the kjs-parserName attribute before compiling
 	 * @type {Object.<string, HTMLElement>}
 	 */
 	elements;
 
 	/**
+	 * All managed lists inside the component
 	 * @type {Object.<string, List>}
 	 */
 	lists;
